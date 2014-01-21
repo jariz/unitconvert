@@ -90,9 +90,8 @@ class Bot extends Command
             //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
             $result = $this->reddit->getComments("r/all/comments", 100);
 //            $result = $this->reddit->getComments("r/JariZ/comments", 100);
-            foreach ($result as $comment) {
+            foreach ($result as $comment)
                 $this->scan($comment);
-            }
 
             //end of loop
             if (BotConfig::$obeyRules) {
@@ -116,6 +115,8 @@ class Bot extends Command
         }
 
         $this->ids[$comment->getThingId()] = "";
+
+        if($comment->offsetGet("subreddit"))
 
         $conversions = array();
         //metric conversions

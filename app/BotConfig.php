@@ -7,6 +7,7 @@ class BotConfig
     public static $password = "";
 
     public static $obeyRules = true;
+    public static $avoidSubs = array("nfl", "redskins", "columbus");
 
     //most important arrays in the app.
     //Class => array with all aliases and their opposites
