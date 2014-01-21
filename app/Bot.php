@@ -85,11 +85,11 @@ class Bot extends Command
 
     public function Monitor()
     {
-        $last = "";
         while (true) {
             $start = microtime(true);
             //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-            $result = $this->reddit->getComments("r/all/comments", 50);
+//            $result = $this->reddit->getComments("r/all/comments", 100);
+            $result = $this->reddit->getComments("r/JariZ/comments", 100);
             foreach ($result as $comment) {
                 $this->scan($comment);
             }
@@ -99,17 +99,21 @@ class Bot extends Command
                 $spend = 2000 - (microtime(true) - $start);
                 if ($spend > 0) {
                     $spend = ($spend * 1000);
-                    $this->comment("Obeying tha rulez, Sleeping {$spend} msecs...");
+                    $this->comment("Sleeping {$spend} msecs, processed {$this->processed} in total.");
                     usleep($spend);
                 }
             }
         }
     }
 
+    private $processed;
+
     function scan(Comment $comment)
     {
-        if (isset($this->ids[$comment->getThingId()]))
+        if (isset($this->ids[$comment->getThingId()])) {
+//            xdebug_break();
             return;
+        }
 
         $this->ids[$comment->getThingId()] = "";
 
@@ -142,8 +146,16 @@ class Bot extends Command
                 eval("\$conversions_comment .= \"".BotConfig::$templates["conversion"]."\";");
             $reply = "";
             eval("\$reply = \"".BotConfig::$templates["comment"]."\";");
+            $this->info("-------- REPLYING --------");
             $this->info($reply);
+            $this->info("-------------------------");
+            $this->info("By: ".$comment->getAuthorName());
+            $this->info($comment->getBody());
+            $this->info("-------------------------");
+            $comment->reply($reply);
         }
+
+        $this->processed++;
     }
 
     private $regex = "/(\\d*([,.]\\d+)?)(?![0-9\\.])( )?(MATCHES)/";
@@ -202,7 +214,7 @@ class Bot extends Command
         $class = new $class($value, $unit);
         /* @var $class \PhpUnitsOfMeasure\PhysicalQuantity */
         $opposite_value = $class->toUnit($opposite);
-        $opposite_value = round($opposite_value);
+        $opposite_value = round($opposite_value, 3);
         return array(
             "{$value} {$unit}" => "{$opposite_value} {$opposite}"
         );

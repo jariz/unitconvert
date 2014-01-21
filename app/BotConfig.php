@@ -13,11 +13,11 @@ class BotConfig
 
     public static $units_metric = array(
         "Length" => array(
-            "km,kilometer,kilometers,km" => "mile",
-            "decimeter,decimeters,dm" => "foot",
+            "km,kilometer,kilometers,km" => "miles",
+            "decimeter,decimeters,dm" => "feet",
             "centimeter,centimeters,cm" => "inch",
             "millimeter,millimeters,mm" => "inch",
-            "meter,meters,m" => "foot"
+            "meter,meters,m" => "feet"
         )
     );
 
@@ -26,7 +26,7 @@ class BotConfig
             "mile,miles" => "kilometer",
             "yard,yards,yd" => "meter",
             "feet,foot,ft" => "meter",
-            "inch,inches,in" => "centimeter",
+            "inch,inches" => "centimeter",
         )
     );
 
@@ -34,7 +34,7 @@ class BotConfig
     public static $templates = array(
         "comment" => "I've converted the units in this comment for you:
 {\$conversions_comment}
-####[[`I am opensource`](http://github.com/jariz/unitconvert)] [[`Author`](/u/MoederPoeder)]",
+####[`Still in a experimental phase, PM author if you have complains`][[`I am opensource`](http://github.com/jariz/unitconvert)] [[`Author`](/u/MoederPoeder)] [[`More information`](/r/unitconvert)]",
         "conversion" => "
 - __{\$original}__ is __{\$conversion}__
 
