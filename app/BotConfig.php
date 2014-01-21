@@ -34,7 +34,7 @@ class BotConfig
     public static $templates = array(
         "comment" => "I've converted the units in this comment for you:
 {\$conversions_comment}
-####[`Still in a experimental phase, PM author if you have complaints`][[`I am opensource`](http://github.com/jariz/unitconvert)] [[`Author`](/u/MoederPoeder)] [[`More information`](/r/unitconvert)]",
+####[`Still in an experimental phase, PM author if you have complaints`][[`I am opensource`](http://github.com/jariz/unitconvert)] [[`Author`](/u/MoederPoeder)] [[`More information`](/r/unitconvert)]",
         "conversion" => "
 - __{\$original}__ is __{\$conversion}__
 
