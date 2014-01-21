@@ -1,0 +1,17 @@
+{
+    "name": "jariz/unitconvert",
+    "description": "Reddit unit conversion bot",
+    "require": {
+        "triplepoint/php-units-of-measure": "*",
+        "illuminate/console": "*",
+        "jariz/reddit-api-client":"*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "JariZ",
+            "email": "spam@jariz.pro"
+        }
+    ],
+    "minimum-stability": "stable"
+}
