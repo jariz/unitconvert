@@ -119,7 +119,7 @@ class Bot extends Command
 
         $conversions = array();
         //metric conversions
-        $results = $this->pattern($comment->getBody(), $this->metric_matches);
+        $results = $this->pattern($comment->getBody(), $this->metric_matches,Bot::UNITSYSTEM_METRIC);
         if (count($results) > 0)
             foreach ($results as $result) {
                 $res = $this->unitconvert($result, Bot::UNITSYSTEM_METRIC);
@@ -130,7 +130,7 @@ class Bot extends Command
             }
 
         //imperial conversions
-        $results = $this->pattern($comment->getBody(), $this->imperial_matches);
+        $results = $this->pattern($comment->getBody(), $this->imperial_matches,Bot::UNITSYSTEM_IMPERIAL);
         if (count($results) > 0)
             foreach ($results as $result) {
                 $res = $this->unitconvert($result, Bot::UNITSYSTEM_IMPERIAL);;
@@ -160,7 +160,7 @@ class Bot extends Command
 
     private $regex = "/(\\d*([,.]\\d+)?)(?![0-9\\.])( )?(MATCHES)\\b/";
 
-    function pattern($body, $matches)
+    function pattern($body, $matches, $unitsystem)
     {
 //        $this->info("DEBUG: Input string: " . $body);
         $regex = str_replace("MATCHES", $matches, $this->regex);
@@ -169,7 +169,16 @@ class Bot extends Command
         $ret = array();
         foreach ($matches as $match) {
             if(!empty($match[1]))
-                $ret[] = array(doubleval(str_replace(",", ".", $match[1])), $match[4]);
+	       	 	switch ($unitsystem) {
+	            	case Bot::UNITSYSTEM_IMPERIAL:
+                		$ret[] = array(doubleval(str_replace(",", "", $match[1])), $match[4]);
+	                	break;
+	            	case Bot::UNITSYSTEM_METRIC:
+                		$ret[] = array(doubleval(str_replace(",",".",str_replace(".", "", $match[1]))), $match[4]);
+	                	break;
+	            	default:
+	                	throw new \InvalidArgumentException("Invalid unit system");
+	       		}
         }
         return $ret;
     }
