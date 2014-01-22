@@ -13,5 +13,10 @@
             "email": "spam@jariz.pro"
         }
     ],
+    "autoload": {
+        "psr-0": {
+            "JariZ\\": "app/"
+        }
+    },
     "minimum-stability": "stable"
 }

@@ -3,6 +3,7 @@ namespace JariZ;
 
 use Illuminate\Console\Command;
 use PhpUnitsOfMeasure\PhysicalQuantity\Length;
+use PhpUnitsOfMeasure\UnitOfMeasure;
 use \RedditApiClient\Comment;
 use \RedditApiClient\Reddit;
 use Symfony\Component\Console\Input\InputInterface;
@@ -88,8 +89,8 @@ class Bot extends Command
         while (true) {
             $start = microtime(true);
             //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-            $result = $this->reddit->getComments("r/all/comments", 100);
-//            $result = $this->reddit->getComments("r/JariZ/comments", 100);
+//            $result = $this->reddit->getComments("r/all/comments", 100);
+            $result = $this->reddit->getComments("r/JariZ/comments", 100);
             foreach ($result as $comment)
                 $this->scan($comment);
 
@@ -109,14 +110,12 @@ class Bot extends Command
 
     function scan(Comment $comment)
     {
-        if (isset($this->ids[$comment->getThingId()])) {
-//            xdebug_break();
-            return;
-        }
+        if (isset($this->ids[$comment->getThingId()])) return;
 
         $this->ids[$comment->getThingId()] = "";
 
-        if($comment->offsetGet("subreddit"))
+        if (in_array(strtolower($comment->offsetGet("subreddit")), BotConfig::$avoidSubs)) return;
+        if (strtolower($comment->getAuthorName()) == strtolower(BotConfig::$username)) return;
 
         $conversions = array();
         //metric conversions
@@ -124,7 +123,7 @@ class Bot extends Command
         if (count($results) > 0)
             foreach ($results as $result) {
                 $res = $this->unitconvert($result, Bot::UNITSYSTEM_METRIC);
-                if($res != false) {
+                if ($res != false) {
                     $keys = array_keys($res);
                     $conversions[$keys[0]] = $res[$keys[0]];
                 }
@@ -135,31 +134,33 @@ class Bot extends Command
         if (count($results) > 0)
             foreach ($results as $result) {
                 $res = $this->unitconvert($result, Bot::UNITSYSTEM_IMPERIAL);;
-                if($res != false) {
+                if ($res != false) {
                     $keys = array_keys($res);
                     $conversions[$keys[0]] = $res[$keys[0]];
                 }
             }
 
-        if(count($results) > 0) {
+        if (count($conversions) > 0) {
             $conversions_comment = "";
-            foreach($conversions as $original => $conversion)
-                eval("\$conversions_comment .= \"".BotConfig::$templates["conversion"]."\";");
+            $OP = $comment->getAuthorName();
+            foreach ($conversions as $original => $conversion)
+                eval("\$conversions_comment .= \"" . BotConfig::$templates["conversion"] . "\";");
             $reply = "";
-            eval("\$reply = \"".BotConfig::$templates["comment"]."\";");
+            eval("\$reply = \"" . BotConfig::$templates["comment"] . "\";");
             $this->info("-------- REPLYING --------");
             $this->info($reply);
             $this->info("-------------------------");
-            $this->info("By: ".$comment->getAuthorName());
+            $this->info("By: " . $comment->getAuthorName());
             $this->info($comment->getBody());
             $this->info("-------------------------");
-            $comment->reply($reply);
+            if (!BotConfig::$dryRun) $comment->reply($reply);
+            else $this->info("Running in dryrun-mode, didn't post.");
         }
 
         $this->processed++;
     }
 
-    private $regex = "/(\\d*([,.]\\d+)?)(?![0-9\\.])( )?(MATCHES)\\b/";
+    private $regex = "/\\b(\\d*([,.]\\d+)?)(?![0-9\\.])( )?(MATCHES)\\b/";
 
     function pattern($body, $matches)
     {
@@ -169,8 +170,9 @@ class Bot extends Command
         preg_match_all($regex, $body, $matches, PREG_SET_ORDER);
         $ret = array();
         foreach ($matches as $match) {
-            if(!empty($match[1]))
-                $ret[] = array(doubleval(str_replace(",", ".", $match[1])), $match[4]);
+            if (!empty($match[1]))
+                $ret[] = array(doubleval(str_replace(",", "", /* todo better approach at , chars */
+                    $match[1])), $match[4]);
         }
         return $ret;
     }
@@ -204,7 +206,7 @@ class Bot extends Command
             }
         }
         if ($opposite == null) {
-            $this->comment("WARN: Couldn't find opposite, even though the regex did match something a key (shouldn't be possible)");
+            $this->comment("WARN: Couldn't find opposite, even though the regex did match a key (shouldn't be possible)");
             return false;
         }
 
@@ -214,8 +216,24 @@ class Bot extends Command
         $class = "\\PhpUnitsOfMeasure\\PhysicalQuantity\\" . $class;
         $class = new $class($value, $unit);
         /* @var $class \PhpUnitsOfMeasure\PhysicalQuantity */
+
+        //add gallon support to phpunitsofmeasure
+        if ($class == "Volume") {
+            $gal = new UnitOfMeasure("gal",
+                function ($x) {
+                    return $x / 3.785412e-3;
+                },
+                function ($x) {
+                    return $x * 3.785412e-3;
+                }
+            );
+            $gal->addAlias("gallon");
+            $gal->addAlias("gallons");
+            $class->registerUnitOfMeasure($gal);
+        }
         $opposite_value = $class->toUnit($opposite);
         $opposite_value = round($opposite_value, 3);
+        if ($opposite_value > 1) $opposite = BotConfig::$plurals[$opposite];
         return array(
             "{$value} {$unit}" => "{$opposite_value} {$opposite}"
         );
