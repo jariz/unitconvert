@@ -88,8 +88,8 @@ class Dictionary extends Command
         while (true) {
             $start = microtime(true);
             //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-//            $result = $this->reddit->getComments("r/all/comments", 100);
-            $result = $this->reddit->getComments("r/JariZ/comments", 100);
+            $result = $this->reddit->getComments("r/all/comments", 100);
+//            $result = $this->reddit->getComments("r/JariZ/comments", 100);
             foreach ($result as $comment)
                 $this->scan($comment);
 
@@ -115,7 +115,6 @@ class Dictionary extends Command
 
         if (in_array(strtolower($comment->offsetGet("subreddit")), BotConfig::$avoidSubs)) return;
         if (strtolower($comment->getAuthorName()) == strtolower(BotConfig::$username)) return;
-//function scan($input) {
         $output = array();
         foreach (DictionaryConfig::$conversionClasses as $class => $properties) {
             $class = "\\PhpUnitsOfMeasure\\PhysicalQuantity\\" . $class;
