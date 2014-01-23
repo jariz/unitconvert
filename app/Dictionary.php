@@ -113,8 +113,11 @@ class Dictionary extends Command
 
         $this->ids[$comment->getThingId()] = "";
 
+        //ignores
         if (in_array(strtolower($comment->offsetGet("subreddit")), BotConfig::$avoidSubs)) return;
+        if(in_array(strtolower($comment->getAuthorName()), BotConfig::$avoidUsers)) return;
         if (strtolower($comment->getAuthorName()) == strtolower(BotConfig::$username)) return;
+
         $output = array();
         foreach (DictionaryConfig::$conversionClasses as $class => $properties) {
             $class = "\\PhpUnitsOfMeasure\\PhysicalQuantity\\" . $class;
@@ -125,48 +128,54 @@ class Dictionary extends Command
 
 
             //conversion approach
-            $search = $this->pattern($comment->getBody(), implode("|", $units));
-            if (count($search) > 0) {
-                foreach ($search as $match) {
-                    $quantity = new $class($match[0], $match[1]);
-                    $base = $quantity->toUnit($properties["base"]);
-                    if (!isset($properties["dictionary_unit"])) $properties["dictionary_unit"] = $properties["base"];
-                    $entries = $this->searchDictionary($properties["dictionary_unit"], $base);
-                    if ($entries != false) {
-                        foreach ($entries as $entry) {
-                            $output[] = array($entry, "{$match[0]} {$match[1]}");
+            if (DictionaryConfig::$allowConversions) {
+                $search = $this->pattern($comment->getBody(), implode("|", $units));
+                if (count($search) > 0) {
+                    foreach ($search as $match) {
+                        $quantity = new $class($match[0], $match[1]);
+                        $base = $quantity->toUnit($properties["base"]);
+                        if (!isset($properties["dictionary_unit"])) $properties["dictionary_unit"] = $properties["base"];
+                        $entries = $this->searchDictionary($properties["dictionary_unit"], $base);
+                        if ($entries != false) {
+                            foreach ($entries as $entry) {
+                                $output[] = array($entry, "{$match[0]} {$match[1]}");
+                            }
                         }
-                    }
 
+                    }
                 }
             }
         }
 
         //non-conversion approach #1
-        $matches = array();
-        $muney = "/(\\$)\\d+([,.])?(\\d+)?/";
-        preg_match_all($muney, $comment->getBody(), $matches, PREG_SET_ORDER);
-        if (count($matches) > 0) {
-            foreach ($matches as $match) {
-                $entries = $this->searchDictionary("$", floatval(substr(str_replace(",", "", $match[0]), 1)));
+        if (DictionaryConfig::$allowMoney) {
+            $matches = array();
+            $muney = "/(\\$)\\d+([,.])?(\\d+)?/";
+            preg_match_all($muney, $comment->getBody(), $matches, PREG_SET_ORDER);
+            if (count($matches) > 0) {
+                foreach ($matches as $match) {
+                    $entries = $this->searchDictionary("$", floatval(substr(str_replace(",", "", $match[0]), 1)));
 
-                if ($entries != false)
-                    foreach ($entries as $entry)
-                        $output[] = array($entry, $match[0]);
+                    if ($entries != false)
+                        foreach ($entries as $entry)
+                            $output[] = array($entry, $match[0]);
+                }
             }
         }
 
         //non-conversion approach #2
-        $matches = array();
-        $ppl = "/\\d+([,.])?(\\d+)?( )?(people|humans|civilians|protesters)/";
-        preg_match_all($ppl, $comment->getBody(), $matches, PREG_SET_ORDER);
-        if (count($matches) > 0) {
-            foreach ($matches as $match) {
-                $entries = $this->searchDictionary("people", floatval(str_replace(",", "", $match[0])));
+        if (DictionaryConfig::$allowPeople) {
+            $matches = array();
+            $ppl = "/\\d+([,.])?(\\d+)?( )?(people|humans|civilians|protesters)/";
+            preg_match_all($ppl, $comment->getBody(), $matches, PREG_SET_ORDER);
+            if (count($matches) > 0) {
+                foreach ($matches as $match) {
+                    $entries = $this->searchDictionary("people", floatval(str_replace(",", "", $match[0])));
 
-                if ($entries != false)
-                    foreach ($entries as $entry)
-                        $output[] = array($entry, $match[0]);
+                    if ($entries != false)
+                        foreach ($entries as $entry)
+                            $output[] = array($entry, $match[0]);
+                }
             }
         }
 
@@ -182,9 +191,9 @@ class Dictionary extends Command
         $check = array();
         foreach ($output as $attrs) {
             $entry = $attrs[0];
-            if(!isset($check[$attrs[1]])) $check[$attrs[1]] = array();
+            if (!isset($check[$attrs[1]])) $check[$attrs[1]] = array();
             if (!in_array($entry->human_readable, $check[$attrs[1]])) {
-                if(count($check[$attrs[1]]) == DictionaryConfig::$sentencesPerUnit) continue;
+                if (count($check[$attrs[1]]) == DictionaryConfig::$sentencesPerUnit) continue;
                 $check[$attrs[1]][] = $entry->human_readable;
                 $new_output[] = $attrs;
             }

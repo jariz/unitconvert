@@ -15,6 +15,10 @@ class BotConfig
         //other (shit we're banned from)
         "explainlikeimfive", "fitness", "askreddit", "pathfinder_rpg"
     );
+    public static $avoidUsers = array(
+        "autowikibot"
+    );
+
     public static $dryRun = true; //run, but don't actually comment
 
     //most important arrays in the app.
