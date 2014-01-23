@@ -55,7 +55,7 @@ class DownvoteMonitor extends Command
                 ) {
                     $p = explode("/", $message->offsetGet("context"));
                     //grab parent of comment i made
-                    $parent = $this->reddit->getComments("r/{$message->offsetGet("subreddit")}/comments/{$p[4]}/-/" . substr($message->offsetGet("parent_id"), 3), 25, "", "", "", "", 2);
+                    $parent = $this->reddit->getComments("r/{$message->offsetGet("subreddit")}/comments/{$p[4]}/-/" . substr($message->offsetGet("parent_id"), 3), 25, "", "", "", "", 1);
                     if (!isset($parent[0])) continue;
                     $parent = $parent[0];
                     if ($message->getAuthorName() == $parent->getAuthorName()) {
