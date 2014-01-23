@@ -616,20 +616,6 @@
         "si_numeral": 0.1
     },
     {
-        "original_text": "1 m",
-        "human_readable": "wavelength of the lowest UHF and highest VHF radio frequency, 300 MHz",
-        "timestamp": "2012-11-24T00:39:41",
-        "si_minimum": null,
-        "original_human_readable": "wavelength of the lowest <a href=\"/wiki/Ultra_high_frequency\" title=\"Ultra high frequency\">UHF</a> and highest <a href=\"/wiki/Very_high_frequency\" title=\"Very high frequency\">VHF</a> radio frequency, 300\u00a0MHz",
-        "original_year": null,
-        "si_unit": "m",
-        "original_numeral": null,
-        "id": 47,
-        "source": "http://en.wikipedia.org/wiki/Orders_of_magnitude_(length)",
-        "si_maximum": null,
-        "si_numeral": 1.0
-    },
-    {
         "original_text": "1.7 m (5 feet 7\u00a0inches)",
         "human_readable": "average height of a human",
         "timestamp": "2012-11-24T00:39:41",
