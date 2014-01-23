@@ -1,0 +1,36 @@
+{
+
+  "name": "jariz/reddit-api-client",
+  "description": "Modified version of h2s' reddit-api-client for my bots",
+  "keywords": [
+    "reddit",
+    "api",
+    "client"
+  ],
+
+  "license": "GPLv2",
+  "authors": [
+    {
+      "name": "Henry Smith",
+      "email": "henry@henrysmith.org",
+      "homepage": "http://henrysmith.org"
+    }
+  ],
+
+  "autoload": {
+    "psr-0": {
+      "RedditApiClient\\": "src/"
+    }
+  },
+
+  "require": {
+    "php": ">=5.3.0"
+  },
+
+  "require-dev": {
+    "mockery/mockery": "dev-master",
+    "phpunit/phpunit": "3.7.*@dev",
+    "squizlabs/php_codesniffer": "1.*"
+  }
+
+}

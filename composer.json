@@ -1,4 +1,5 @@
 {
+    "warn": ">>COMPOSER IS CURRENTLY NOT USED<< use the vendor directory that's in this directory, I've customized some of the 3rd party lbis, this will be resolved in the future hopefully.",
     "name": "jariz/unitconvert",
     "description": "Reddit unit conversion bot",
     "require": {

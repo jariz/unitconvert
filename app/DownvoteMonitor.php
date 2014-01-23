@@ -55,7 +55,7 @@ class DownvoteMonitor extends Command
                 ) {
                     $p = explode("/", $message->offsetGet("context"));
                     //grab parent of comment i made
-                    $parent = $this->reddit->getComments("r/{$message->offsetGet("subreddit")}/comments/{$p[4]}/-/" . substr($message->offsetGet("parent_id"), 3), 25, "", "", "", "", 3);
+                    $parent = $this->reddit->getComments("r/{$message->offsetGet("subreddit")}/comments/{$p[4]}/-/" . substr($message->offsetGet("parent_id"), 2), 25, "", "", "", "", 2);
                     if (!isset($parent[0])) continue;
                     $parent = $parent[0];
                     if ($message->getAuthorName() == $parent->getAuthorName()) {
@@ -65,7 +65,6 @@ class DownvoteMonitor extends Command
                         $x = $this->reddit->sendRequest("POST", "http://www.reddit.com/api/del", array("id" => $replies[0]->getThingId(), "uh" => $this->reddit->modHash));
                         if (count($x) == 0)  {
                             $this->info("Removed {$comment->getThingId()} on request of a user.");
-
 
                             //notify OP
                             $OP = $message->getAuthorName();
@@ -94,7 +93,6 @@ class DownvoteMonitor extends Command
                 $read = $this->reddit->sendRequest("POST", "http://www.reddit.com/api/read_message", array("id" => $message->getThingId(), "uh" => $this->reddit->modHash));
                 if (count($read) == 0) $this->info("Marked PM {$message->getThingId()} as read");
                 else $this->info("Failed marking PM {$message->getThingId()} as read!");
-//                xdebug_break();
             }
 
             //end of loop

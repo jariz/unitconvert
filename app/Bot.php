@@ -89,8 +89,8 @@ class Bot extends Command
         while (true) {
             $start = microtime(true);
             //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-//            $result = $this->reddit->getComments("r/all/comments", 100);
-            $result = $this->reddit->getComments("r/JariZ/comments", 100);
+            $result = $this->reddit->getComments("r/all/comments", 100);
+//            $result = $this->reddit->getComments("r/JariZ/comments", 100);
             foreach ($result as $comment)
                 $this->scan($comment);
 
