@@ -76,10 +76,16 @@ class DictionaryConfig
      * @param $unit string Unit name in dict
      * @return float
      */
-    public static function tolerance ($x, $unit) {
-        switch($unit) {
-            case 'K':
+    public static function tolerance($x, $unit)
+    {
+        switch ($unit) {
+            case '$':
                 return 0.99;
+            case 'K':
+                if (($x >= 233 && $x <= 373))
+                    return 0.99;
+                else return 0.9;
+                break;
             default:
                 return 0.9;
         }
