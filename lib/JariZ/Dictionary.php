@@ -2,15 +2,10 @@
 
 namespace JariZ;
 
-use Illuminate\Console\Command;
-use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\PhysicalQuantity;
-use PhpUnitsOfMeasure\UnitOfMeasure;
 use \RedditApiClient\Comment;
+use \RedditApiClient\Link;
 use \RedditApiClient\Reddit;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-
 
 /**
  * Class Dictionary
@@ -18,7 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Dictionary extends Command
 {
-
+    /**
+     * @var Reddit
+     */
     private $reddit;
 
     /*
@@ -28,19 +25,18 @@ class Dictionary extends Command
 
     public function __construct()
     {
-        $this->name = "dictionary";
         parent::__construct();
+        $this->name = "dictionary";
     }
 
     public function fire()
     {
         $this->info("Unitconvert dictionary mode booting...");
+        $this->info("   - Logging in...");
         $this->reddit = new Reddit(BotConfig::$username, BotConfig::$password);
-//        $this->initMatches();
+        $this->info("   - Loading dictionary...");
         $this->loadDictionary();
 
-        $inputstring = "15grams";
-//        $this->scan($inputstring);
         $this->Monitor();
     }
 
@@ -73,7 +69,8 @@ class Dictionary extends Command
 
     function loadDictionary()
     {
-        $this->dictionary = json_decode(file_get_contents(__DIR__ . "/../res/DictionaryOfNumbers.db.json"));
+        global $baseDir;
+        $this->dictionary = json_decode(file_get_contents($baseDir . "/res/DictionaryOfNumbers.db.json"));
         $this->info("Loaded " . count($this->dictionary) . " dictionary entries");
 
         $types = array();
@@ -86,31 +83,48 @@ class Dictionary extends Command
     public function Monitor()
     {
         while (true) {
-            $start = microtime(true);
-            //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-            $result = $this->reddit->getComments("r/all/comments", 100);
-//            $result = $this->reddit->getComments("r/JariZ/comments", 100);
-            foreach ($result as $comment)
-                $this->scan($comment);
 
-            //end of loop
-            if (BotConfig::$obeyRules) {
-                $spend = 2000 - (microtime(true) - $start);
-                if ($spend > 0) {
-                    $spend = ($spend * 1000);
-                    $this->comment("Sleeping {$spend} msecs, processed {$this->processed} in total.");
-                    usleep($spend);
-                }
+            if(DictionaryConfig::$scanComments) {
+                $start = microtime(true);
+                $this->monitorComments();
+                $this->wait($start);
+            }
+
+            if(DictionaryConfig::$scanLinks) {
+                $start = microtime(true);
+                $this->monitorLinks();
+                $this->wait($start);
             }
         }
     }
 
+    function wait($start) {
+        if (BotConfig::$obeyRules) {
+            $spend = 2000 - (microtime(true) - $start);
+            if ($spend > 0) {
+                $spend = ($spend * 1000);
+                $this->comment("Sleeping {$spend} msecs, processed {$this->processed} in total.");
+                usleep($spend);
+            }
+        }
+    }
+
+    function monitorComments() {
+        $result = $this->reddit->getComments("r/all/comments", 100);
+        foreach ($result as $comment)
+            $this->scanComment($comment);
+    }
+
+    function monitorLinks() {
+        $result = $this->reddit->getLinksBySubreddit("all/new", 50);
+        foreach($result as $link)
+            $this->scanLink($link);
+    }
+
     private $processed = 0;
 
-    function scan(Comment $comment)
-    {
+    function scanComment(Comment $comment) {
         if (isset($this->ids[$comment->getThingId()])) return;
-
         $this->ids[$comment->getThingId()] = "";
 
         //ignores
@@ -118,18 +132,71 @@ class Dictionary extends Command
         if(in_array(strtolower($comment->getAuthorName()), BotConfig::$avoidUsers)) return;
         if (strtolower($comment->getAuthorName()) == strtolower(BotConfig::$username)) return;
 
+        //make it happen
+        $sentences = $this->scan($comment->getBody());
+        if(count($sentences) == 0) return;
+
+        //build reply
+        $sentences = implode(", ", $sentences);
+        $OP = $comment->getAuthorName();
+        $reply = "";
+        eval("\$reply = \"" . DictionaryConfig::$templates["comment"] . "\";");
+
+        $this->info("--- REPLYING @ COMMENT ---");
+        $this->info($reply);
+        $this->info("--------------------------");
+        $this->info("By: " . $comment->getAuthorName());
+        $this->info($comment->getBody());
+        $this->info("--------------------------");
+        if (!BotConfig::$dryRun) $comment->reply($reply);
+        else $this->info("Running in dryrun-mode, didn't post.");
+    }
+
+    function scanLink(Link $link) {
+        if (isset($this->ids[$link->getThingId()])) return;
+        $this->ids[$link->getThingId()] = "";
+
+        if (in_array(strtolower($link->offsetGet("subreddit")), BotConfig::$avoidSubs)) return;
+        if(in_array(strtolower($link->getAuthorName()), BotConfig::$avoidUsers)) return;
+        if (strtolower($link->getAuthorName()) == strtolower(BotConfig::$username)) return;
+
+        //make it happen
+        $sentences = $this->scan($link->getTitle());
+        if(count($sentences) == 0) return;
+
+        //build reply
+        $sentences = implode(", ", $sentences);
+        $OP = $link->getAuthorName();
+        $reply = "";
+        eval("\$reply = \"" . DictionaryConfig::$templates["comment"] . "\";");
+
+        $this->info("----- REPLYING @ LINK ----");
+        $this->info($reply);
+        $this->info("--------------------------");
+        $this->info("By: " . $link->getAuthorName());
+        $this->info($link->getTitle());
+        $this->info("--------------------------");
+        if (!BotConfig::$dryRun) $link->reply($reply);
+        else $this->info("Running in dryrun-mode, didn't post.");
+    }
+
+    /**
+     * Scan the string for matches with the certified and patented unitconvert™  algorithm
+     * @param $string string The input string
+     * @returns string Returns an array with sentences (if any)
+     */
+    function scan($string)
+    {
         $output = array();
         foreach (DictionaryConfig::$conversionClasses as $class => $properties) {
             $class = "\\PhpUnitsOfMeasure\\PhysicalQuantity\\" . $class;
             $quantity = new $class(null, null);
             /* @var $quantity PhysicalQuantity */
             $units = $quantity->getUnits();
-//            $this->info("Following units in class {$class}: array(\"" . implode("\", \"", $units) . "\")");
-
 
             //conversion approach
             if (DictionaryConfig::$allowConversions) {
-                $search = $this->pattern($comment->getBody(), implode("|", $units));
+                $search = $this->pattern($string, implode("|", $units));
                 if (count($search) > 0) {
                     foreach ($search as $match) {
                         $quantity = new $class($match[0], $match[1]);
@@ -151,7 +218,7 @@ class Dictionary extends Command
         if (DictionaryConfig::$allowMoney) {
             $matches = array();
             $muney = "/(\\$)\\d+([,.])?(\\d+)?/";
-            preg_match_all($muney, $comment->getBody(), $matches, PREG_SET_ORDER);
+            preg_match_all($muney, $string, $matches, PREG_SET_ORDER);
             if (count($matches) > 0) {
                 foreach ($matches as $match) {
                     $entries = $this->searchDictionary("$", floatval(substr(str_replace(",", "", $match[0]), 1)));
@@ -167,7 +234,7 @@ class Dictionary extends Command
         if (DictionaryConfig::$allowPeople) {
             $matches = array();
             $ppl = "/\\d+([,.])?(\\d+)?( )?(people|humans|civilians|protesters)/";
-            preg_match_all($ppl, $comment->getBody(), $matches, PREG_SET_ORDER);
+            preg_match_all($ppl, $string, $matches, PREG_SET_ORDER);
             if (count($matches) > 0) {
                 foreach ($matches as $match) {
                     $entries = $this->searchDictionary("people", floatval(str_replace(",", "", $match[0])));
@@ -181,7 +248,7 @@ class Dictionary extends Command
 
         $this->processed++;
 
-        if (count($output) == 0) return;
+        if (count($output) == 0) return array();
 
         //randomize order
         shuffle($output);
@@ -206,19 +273,9 @@ class Dictionary extends Command
             $original_value = $attrs[1];
             $sentences[] = "{$original_value} ≈ " . (filter_var($entry->source, FILTER_VALIDATE_URL) ? "[{$entry->human_readable}](" . str_replace(array("(", ")"), array("%28", "%29"), $entry->source) . ")" : $entry->human_readable);
         }
-        $sentences = implode(", ", $sentences);
-        $OP = $comment->getAuthorName();
-        $reply = "";
-        eval("\$reply = \"" . DictionaryConfig::$templates["comment"] . "\";");
 
-        $this->info("-------- REPLYING --------");
-        $this->info($reply);
-        $this->info("-------------------------");
-        $this->info("By: " . $comment->getAuthorName());
-        $this->info($comment->getBody());
-        $this->info("-------------------------");
-        if (!BotConfig::$dryRun) $comment->reply($reply);
-        else $this->info("Running in dryrun-mode, didn't post.");
+        return $sentences;
+
     }
 
     private $regex = "/\\b(\\d*([,.]\\d+)?)(?![0-9\\.])( )?(MATCHES)\\b/";
@@ -229,7 +286,6 @@ class Dictionary extends Command
         $matches = array();
         preg_match_all($regex, $body, $matches, PREG_SET_ORDER);
 
-//        $this->info($regex);
         $ret = array();
         foreach ($matches as $match) {
             if (!empty($match[1]))

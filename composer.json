@@ -1,11 +1,8 @@
 {
-    "warn": ">>COMPOSER IS CURRENTLY NOT USED<< use the vendor directory that's in this directory, I've customized some of the 3rd party lbis, this will be resolved in the future hopefully.",
     "name": "jariz/unitconvert",
     "description": "Reddit unit conversion bot",
-    "require": {
-        "triplepoint/php-units-of-measure": "*",
-        "illuminate/console": "*",
-        "jariz/reddit-api-client":"*"
+    "require-dev": {
+        "hoa/console": "dev-master"
     },
     "license": "MIT",
     "authors": [
@@ -16,8 +13,10 @@
     ],
     "autoload": {
         "psr-0": {
-            "JariZ\\": "app/"
+            "JariZ": "lib",
+            "RedditApiClient": "lib",
+            "PhpUnitsOfMeasure": "lib"
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "dev"
 }

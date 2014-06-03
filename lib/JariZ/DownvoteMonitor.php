@@ -3,7 +3,6 @@
 namespace JariZ;
 
 
-use Illuminate\Console\Command;
 use RedditApiClient\Reddit;
 use RedditApiClient\Comment;
 

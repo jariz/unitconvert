@@ -1,13 +1,9 @@
 <?php
 namespace JariZ;
 
-use Illuminate\Console\Command;
-use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\UnitOfMeasure;
 use \RedditApiClient\Comment;
 use \RedditApiClient\Reddit;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class Bot extends Command
 {
@@ -81,29 +77,6 @@ class Bot extends Command
         }
         $this->imperial_matches = substr($this->imperial_matches, 0, strlen($this->imperial_matches) - 1);
         $this->info("Loaded " . count(explode("|", $this->imperial_matches)) . " imperial matches");
-    }
-
-
-    public function Monitor()
-    {
-        while (true) {
-            $start = microtime(true);
-            //this assumes there aren't more than 50 comments every 2 seconds, which seems reasonable imo
-            $result = $this->reddit->getComments("r/all/comments", 100);
-//            $result = $this->reddit->getComments("r/JariZ/comments", 100);
-            foreach ($result as $comment)
-                $this->scan($comment);
-
-            //end of loop
-            if (BotConfig::$obeyRules) {
-                $spend = 2000 - (microtime(true) - $start);
-                if ($spend > 0) {
-                    $spend = ($spend * 1000);
-                    $this->comment("Sleeping {$spend} msecs, processed {$this->processed} in total.");
-                    usleep($spend);
-                }
-            }
-        }
     }
 
     private $processed;

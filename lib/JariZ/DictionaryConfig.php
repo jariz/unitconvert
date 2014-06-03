@@ -71,6 +71,18 @@ class DictionaryConfig
     public static $allowPeople = true;
 
     /**
+     * Whether to scan links yes/no
+     * @var bool
+     */
+    public static $scanLinks = true;
+
+    /**
+     * Whether to scan comments yes/no
+     * @var bool
+     */
+    public static $scanComments = false;
+
+    /**
      * How exact we are when it comes to the range of dictionary items
      * @param $x float Value
      * @param $unit string Unit name in dict
