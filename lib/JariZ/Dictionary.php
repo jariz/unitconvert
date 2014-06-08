@@ -31,6 +31,15 @@ class Dictionary extends Command
 
     public function fire()
     {
+        if(!empty($this->input)) {
+            $this->info("Unitconvert input mode, input string: ".$this->input);
+            $this->info("   - Loading dictionary...");
+            $this->loadDictionary();
+            $this->info("   - Running algorithm...");
+            var_dump($this->scan($this->input));
+            $this->info("Buh-bye!");
+            exit;
+        }
         $this->info("Unitconvert dictionary mode booting...");
         $this->info("   - Logging in...");
         $this->reddit = new Reddit(BotConfig::$username, BotConfig::$password);

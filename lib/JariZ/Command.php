@@ -10,6 +10,7 @@ namespace JariZ;
 use Hoa\Console\Cursor;
 class Command {
     protected $name = "";
+    public $input = "";
     public function getName() {
         return $this->name;
     }
@@ -17,10 +18,13 @@ class Command {
 
     }
     public function info($message) {
-        echo $message."\n";
+        echo "[INFO] ".$message."\n";
     }
     public function comment($message) {
-        echo $message."\n";
+        echo "[COMMENT] ".$message."\n";
+    }
+    public function error($message) {
+        echo "[ERROR] >>>".$message;
     }
     public function fire() {
         //should be overridden

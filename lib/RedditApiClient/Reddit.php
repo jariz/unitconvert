@@ -136,11 +136,11 @@ class Reddit
 
         $response = $request->getResponse();
 
-        $this->dumpRateInfo($response->getHeaders());
-
         if (!($response instanceof HttpResponse)) {
             return null;
         }
+
+        $this->dumpRateInfo($response->getHeaders());
 
         $responseBody = $response->getBody();
         $response = json_decode($responseBody, true);

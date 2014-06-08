@@ -19,7 +19,7 @@ class BotConfig
         "autowikibot"
     );
 
-    public static $dryRun = true; //run, but don't actually comment
+    public static $dryRun = false; //run, but don't actually comment
 
     //most important arrays in the app.
     //Class => array with all aliases and their opposites
@@ -32,8 +32,7 @@ class BotConfig
             "meter,meters,m" => "foot"
         ),
         "Mass" => array(
-            "kg,kilogram,kgs,kg's" => "pound",
-            "kg,kilogram,kgs,kg's" => "pound",
+            "kg,kilogram,kgs,kg's" => "pound"
         )
     );
 

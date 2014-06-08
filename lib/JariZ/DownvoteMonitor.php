@@ -57,13 +57,26 @@ class DownvoteMonitor extends Command
                     $parent = $this->reddit->getComments("r/{$message->offsetGet("subreddit")}/comments/{$p[4]}/-/" . substr($message->offsetGet("parent_id"), 3), 25, "", "", "", "", 1);
                     if (!isset($parent[0])) continue;
                     $parent = $parent[0];
-                    if ($message->getAuthorName() == $parent->getAuthorName()) {
-                        $replies = $parent->getReplies();
+                    $pmAuthor = $message->getAuthorName();
+                    if(strtolower($parent->getAuthorName()) == strtolower(BotConfig::$username)) {
+                        //reddit says we're the owner, which means we commented @ a link.
 
+                        //the comment we're deleting is the 'parent'
+                        $delete = $parent;
+                        //grab link
+                        $link = $this->reddit->getLink($p[4]);
+                        $originalAuthor = $link->getAuthorName();
+                    } else {
+                        $originalAuthor = $parent->getAuthorName();
+                        $replies = $parent->getReplies();
+                        $delete = $replies[0];
+                    }
+
+                    if (strtolower($pmAuthor) == strtolower($originalAuthor)) {
                         //remove comment
-                        $x = $this->reddit->sendRequest("POST", "http://www.reddit.com/api/del", array("id" => $replies[0]->getThingId(), "uh" => $this->reddit->modHash));
+                        $x = $this->reddit->sendRequest("POST", "http://www.reddit.com/api/del", array("id" => $delete->getThingId(), "uh" => $this->reddit->modHash));
                         if (count($x) == 0)  {
-                            $this->info("Removed {$comment->getThingId()} on request of a user.");
+                            $this->info("Removed {$delete->getThingId()} on request of a user.");
 
                             //notify OP
                             $OP = $message->getAuthorName();
@@ -83,8 +96,7 @@ class DownvoteMonitor extends Command
                             $this->info("------------------");
                         }
                         else
-                            $this->error("Failed removing {$comment->getThingId()} on request of a user");
-
+                            $this->error("Failed removing {$delete->getThingId()} on request of a user");
 
                     } else {
                         $this->info("Somebody tried to tell me to remove a post but he's not the OP of the post, what a dick.");

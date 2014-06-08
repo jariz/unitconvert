@@ -102,7 +102,7 @@ class Length extends PhysicalQuantity
 
         // Inch
         $new_unit = new UnitOfMeasure(
-            'in',
+            'inch',
             function ($x) {
                 return $x / 0.0254;
             },
@@ -110,7 +110,7 @@ class Length extends PhysicalQuantity
                 return $x * 0.0254;
             }
         );
-        $new_unit->addAlias('inch');
+        $new_unit->addAlias('"');
         $new_unit->addAlias('inches');
         $this->registerUnitOfMeasure($new_unit);
 
