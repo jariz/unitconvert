@@ -2,6 +2,7 @@
 
 namespace JariZ;
 
+use Hoa\Core\Exception\Exception;
 use PhpUnitsOfMeasure\PhysicalQuantity;
 use \RedditApiClient\Comment;
 use \RedditApiClient\Link;
@@ -125,9 +126,14 @@ class Dictionary extends Command
     }
 
     function monitorLinks() {
-        $result = $this->reddit->getLinksBySubreddit("all/new", 50);
-        foreach($result as $link)
-            $this->scanLink($link);
+        try {
+            $result = $this->reddit->getLinksBySubreddit("all/new", 50);
+            foreach($result as $link)
+                $this->scanLink($link);
+        }
+        catch(Exception $z) {
+            $this->error($z->getMessage());
+        }
     }
 
     private $processed = 0;

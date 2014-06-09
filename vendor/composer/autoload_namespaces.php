@@ -6,11 +6,11 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
-    'Symfony\\Component\\Console\\' => array($vendorDir . '/symfony/console'),
-    'RedditApiClient\\' => array($vendorDir . '/jariz/reddit-api-client/src'),
-    'PhpUnitsOfMeasure' => array($vendorDir . '/triplepoint/php-units-of-measure/source'),
-    'Illuminate\\Console' => array($vendorDir . '/illuminate/console'),
-    'Guzzle\\Tests' => array($vendorDir . '/guzzle/guzzle/tests'),
-    'Guzzle' => array($vendorDir . '/guzzle/guzzle/src'),
+    'RedditApiClient' => array($baseDir . '/lib'),
+    'PhpUnitsOfMeasure' => array($baseDir . '/lib'),
+    'JariZ' => array($baseDir . '/lib'),
+    'Hoa\\String' => array($vendorDir . '/hoa/string'),
+    'Hoa\\Stream' => array($vendorDir . '/hoa/stream'),
+    'Hoa\\Core' => array($vendorDir . '/hoa/core'),
+    'Hoa\\Console' => array($vendorDir . '/hoa/console'),
 );
