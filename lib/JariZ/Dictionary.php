@@ -2,7 +2,6 @@
 
 namespace JariZ;
 
-use Hoa\Core\Exception\Exception;
 use PhpUnitsOfMeasure\PhysicalQuantity;
 use \RedditApiClient\Comment;
 use \RedditApiClient\Link;
@@ -131,7 +130,7 @@ class Dictionary extends Command
             foreach($result as $link)
                 $this->scanLink($link);
         }
-        catch(Exception $z) {
+        catch(\Exception $z) {
             $this->error($z->getMessage());
         }
     }
